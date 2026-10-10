@@ -2,7 +2,7 @@
 """Smoke test for the currency converter assignment.
 
 Checks the student client and server against a reference implementation of
-the wire protocol, using the examples in Assegnazione.md. Passing this test
+the application protocol, using the examples in Assegnazione.md. Passing this test
 does NOT guarantee a pass in the final grading, which uses further cases.
 
 Usage: smoke_test.py CLIENT_EXE SERVER_EXE
