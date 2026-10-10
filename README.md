@@ -35,10 +35,7 @@ Il repository è organizzato in due progetti Eclipse CDT separati, più la carte
 ### 1. Creare la propria copia del repository
 
 1. Cliccare su "Use this template" in alto a destra su GitHub
-2. Creare un nuovo repository personale
-    - Come _Repository name_ inserire `cognome_matricola_esonero_reti_tcp_itps_A-K_26-27` (es. `rossi_12345_esonero_reti_tcp_itps_A-K_26-27`)
-    - Se l'esonero è svolto in coppia: `cognome1_matricola1_cognome2_matricola2_esonero_reti_tcp_itps_A-K_26-27` (es. `rossi_12345_bianchi_67890_esonero_reti_tcp_itps_A-K_26-27`)
-    - Impostare la visibilità su _Public_
+2. Creare un nuovo repository personale (nome a scelta) con visibilità _Public_
 3. Clonare il repository sul proprio computer:
    ```bash
    git clone <url-del-tuo-repository>
