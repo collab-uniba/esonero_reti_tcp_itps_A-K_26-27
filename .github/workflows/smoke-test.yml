@@ -7,8 +7,8 @@ on:
 
 jobs:
   smoke-test:
-    # Skip on the template's main branch, where client and server are still empty
-    if: ${{ !(github.event.repository.is_template && github.ref_name == 'main') }}
+    # Skip in the template repository itself, where client and server are empty
+    if: github.repository != 'collab-uniba/esonero_reti_tcp_itps_A-K_26-27'
     strategy:
       fail-fast: false
       matrix:
@@ -19,9 +19,9 @@ jobs:
       run:
         shell: bash
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v5
 
-      - uses: actions/setup-python@v5
+      - uses: actions/setup-python@v6
         with:
           python-version: "3.12"
 
