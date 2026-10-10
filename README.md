@@ -35,7 +35,7 @@ Il repository è organizzato in due progetti Eclipse CDT separati, più la carte
 ### 1. Creare la propria copia del repository
 
 1. Cliccare su "Use this template" in alto a destra su GitHub
-2. Creare un nuovo repository personale con visibilità _Public_. Il nome è a scelta e non compare nei risultati: le consegne sono identificate da cognome e matricola indicati nel form di consegna
+2. Creare un nuovo repository personale (nome a scelta) con visibilità _Public_
 3. Clonare il repository sul proprio computer:
    ```bash
    git clone <url-del-tuo-repository>
