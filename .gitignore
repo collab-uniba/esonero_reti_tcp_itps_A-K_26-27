@@ -61,3 +61,6 @@ Release/
 
 # macOS files
 .DS_Store
+
+# Smoke test build output
+build/
