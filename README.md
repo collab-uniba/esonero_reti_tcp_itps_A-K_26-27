@@ -1,4 +1,4 @@
-# Esonero TCP - Corso di Reti di Calcolatori - ITPS A-L 2026-27
+# Esonero TCP - Corso di Reti di Calcolatori - ITPS A-K 2026-27
 
 Repository per l'assegnazione della prima prova di esonero: client-server TCP.
 
