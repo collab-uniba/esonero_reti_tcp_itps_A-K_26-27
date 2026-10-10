@@ -119,7 +119,7 @@ ed esce con codice di uscita diverso da 0.
 ## Consegna
 
 - **Scadenza**: _TBD_
-- **Form di prenotazione / consegna**: [link](https://forms.gle/d7zivatYBT6uHMzU8)
+- **Form di prenotazione / consegna**: [link](https://forms.gle/d7zivatYBT6uHMzU8) (Ctrl/Cmd-clic per aprire in una nuova scheda)
 - **Formato**: link al repository GitHub pubblico
 - **Risultati**: [link](https://collab-uniba.github.io/correzione_esonero_reti_tcp_itps_A-K_26-27/aggregate-report.html)
 - **Note**:
