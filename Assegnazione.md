@@ -125,7 +125,6 @@ ed esce con codice di uscita diverso da 0.
 - **Note**:
    - Una sola consegna per coppia
    - Non è necessario ricompilare il form di consegna dopo aggiornamenti al repository
-   - Nella pagina dei risultati ogni consegna compare come `Cognome (Matricola)`, con i dati indicati nel form; il nome del repository non viene mostrato
    - La pagina dei risultati si aggiorna ogni ora
 
 _Ver. 0.2.0_
