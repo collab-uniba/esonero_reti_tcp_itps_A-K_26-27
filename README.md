@@ -1,4 +1,4 @@
-# Esonero TCP - Corso di Reti di Calcolatori - ITPS A-L 2026-27
+# Esonero TCP - Corso di Reti di Calcolatori - ITPS A-K 2026-27
 
 Repository per l'assegnazione della prima prova di esonero: client-server TCP.
 
@@ -13,6 +13,8 @@ Il repository è organizzato in due progetti Eclipse CDT separati:
 
 ```
 .
+├── .github/                # Smoke test automatico (GitHub Actions), non modificare
+│
 ├── client-project/         # Progetto Eclipse per il client
 │   ├── .project            # Configurazione progetto Eclipse
 │   ├── .cproject           # Configurazione Eclipse CDT
@@ -34,9 +36,10 @@ Il repository è organizzato in due progetti Eclipse CDT separati:
 
 1. Cliccare su "Use this template" in alto a destra su GitHub
 2. Creare un nuovo repository personale
-    - Rinominare il repository sostituendo la parola _template_ con il vostro _cognome_ seguito dalla _matricola_ (`template_esonero_tcp` -> `cognome_12345_esonero_tcp`)
-    - Se l'esonero è svolto in coppia, il nome del repository sarà `cognome1_12345_cognome2_6789_esonero_tcp`
-4. Clonare il repository sul proprio computer:
+    - Come _Repository name_ inserire `cognome_matricola_esonero_reti_tcp_itps_A-K_26-27` (es. `rossi_12345_esonero_reti_tcp_itps_A-K_26-27`)
+    - Se l'esonero è svolto in coppia: `cognome1_matricola1_cognome2_matricola2_esonero_reti_tcp_itps_A-K_26-27` (es. `rossi_12345_bianchi_67890_esonero_reti_tcp_itps_A-K_26-27`)
+    - Impostare la visibilità su _Public_
+3. Clonare il repository sul proprio computer:
    ```bash
    git clone <url-del-tuo-repository>
    ```
@@ -73,18 +76,9 @@ Per compilare su Windows, è necessario linkare la libreria Winsock:
 ## File Principali
 
 ### protocol.h
-Contiene:
-- **Costanti condivise**: numero di porta del server, dimensione del buffer, ecc.
-- **Prototipi delle funzioni**: inserire qui le firme di tutte le funzioni implementate
-
-Esempio:
-```c
-#define SERVER_PORT 27015
-#define BUFFER_SIZE 512
-
-// Prototipo funzione esempio
-int connect_to_server(const char* server_address);
-```
+È identico nei due progetti e contiene:
+- **Definizioni del protocollo** (già fornite, **non modificare**): strutture dei messaggi, codici di stato, costanti condivise
+- **Prototipi delle funzioni**: inserire qui le firme delle funzioni implementate
 
 ### main.c (Client e Server)
 Contiene:
@@ -95,6 +89,18 @@ Contiene:
 ## Specifiche dell'Assegnazione
 
 [Protocollo applicativo e istruzioni per la consegna](Assegnazione.md)
+
+## Verifica Automatica (Smoke Test)
+
+A ogni `git push`, GitHub compila client e server su **Windows, Linux e macOS** e li verifica con alcuni esempi presi dall'assegnazione.
+
+- L'esito compare nella scheda **Actions** del vostro repository e accanto a ogni commit (✅ superato, ❌ fallito).
+- In caso di fallimento, aprite l'esecuzione e consultate il **riepilogo**: per ogni verifica fallita è indicato cosa era atteso e cosa è stato ricevuto.
+- Lo smoke test serve a intercettare subito gli errori evidenti (codice che non compila su un sistema operativo, formato di output errato, byte order). **Superarlo non garantisce** il superamento della correzione finale, che usa ulteriori casi di test.
+- Non modificate la cartella `.github/`.
+- Non serve alcuna configurazione: la verifica si attiva da sola nel repository creato con "Use this template".
+- **È normale che le prime esecuzioni falliscano** (e che GitHub vi invii un'email di notifica) finché client e server non sono implementati.
+- Se la scheda **Actions** mostra che i workflow sono disabilitati (ad es. perché avete creato un fork invece di usare il template), abilitateli da lì oppure da _Settings → Actions → General → Allow all actions and reusable workflows_.
 
 ## Salvare e Caricare le Modifiche su GitHub
 
