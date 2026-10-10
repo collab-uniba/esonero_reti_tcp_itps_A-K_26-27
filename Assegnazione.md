@@ -56,8 +56,15 @@ static const rate_t RATES[] = {
     {"JPY", 1620000}, {"CAD",   14800}, {"AUD",  16500}, {"CNY", 78000},
 };
 
+/*
+ * Converts an amount in cents from one currency to another,
+ * rounding to the nearest cent.
+ * Example: 100.00 EUR -> USD is convert(10000, 10000, 10850) = 10850 (108.50 USD)
+ */
 uint32_t convert(uint32_t amount, uint32_t rate_from, uint32_t rate_to) {
-    return (uint32_t)(((uint64_t)amount * rate_to + rate_from / 2) / rate_from);
+    uint64_t product = (uint64_t)amount * rate_to;  // 64 bits to avoid overflow
+    uint64_t result = (product + rate_from / 2) / rate_from;  // + half the divisor: round instead of truncate
+    return (uint32_t)result;
 }
 ```
 
