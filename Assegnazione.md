@@ -113,11 +113,7 @@ ed esce con codice di uscita diverso da 0.
 
 - **Scadenza**: _TBD_
 - **Form di prenotazione / consegna**: _TBD_
-- **Formato**: link a repository GitHub accessibile pubblicamente, in uno dei seguenti formati:
-    - https://github.com/<github-id>/cognome_matricola_esonero_reti_tcp_itps_A-K_26-27
-    - https://github.com/<github-id>/cognome_matricola_esonero_reti_tcp_itps_A-K_26-27.git
-    - https://github.com/<github-id>/cognome1_matricola1_cognome2_matricola2_esonero_reti_tcp_itps_A-K_26-27
-    - https://github.com/<github-id>/cognome1_matricola1_cognome2_matricola2_esonero_reti_tcp_itps_A-K_26-27.git
+- **Formato**: link al repository GitHub pubblico, nominato come indicato nel [README](README.md#1-creare-la-propria-copia-del-repository)
 - **Risultati**: [link](https://collab-uniba.github.io/correzione_esonero_reti_tcp_itps_A-K_26-27/aggregate-report.html)
 - **Note**:
    - Una sola consegna per coppia
