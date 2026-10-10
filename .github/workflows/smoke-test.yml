@@ -1,0 +1,38 @@
+name: Smoke test
+
+on:
+  push:
+  pull_request:
+  workflow_dispatch:
+
+jobs:
+  smoke-test:
+    # Skip in the template repository itself, where client and server are empty
+    if: github.repository != 'collab-uniba/esonero_reti_tcp_itps_A-K_26-27'
+    strategy:
+      fail-fast: false
+      matrix:
+        os: [ubuntu-latest, windows-latest, macos-latest]
+    runs-on: ${{ matrix.os }}
+    timeout-minutes: 10
+    defaults:
+      run:
+        shell: bash
+    steps:
+      - uses: actions/checkout@v5
+
+      - uses: actions/setup-python@v6
+        with:
+          python-version: "3.12"
+
+      - name: Build client and server
+        run: |
+          LIBS=""
+          if [ "$RUNNER_OS" = "Windows" ]; then LIBS="-lwsock32"; fi
+          gcc --version | head -n 1
+          mkdir -p build
+          gcc -Wall -o build/client-project client-project/src/*.c $LIBS
+          gcc -Wall -o build/server-project server-project/src/*.c $LIBS
+
+      - name: Run smoke test
+        run: python .github/scripts/smoke_test.py build/client-project build/server-project
