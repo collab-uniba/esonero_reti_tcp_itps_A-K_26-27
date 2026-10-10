@@ -34,9 +34,9 @@ Il repository è organizzato in due progetti Eclipse CDT separati:
 
 1. Cliccare su "Use this template" in alto a destra su GitHub
 2. Creare un nuovo repository personale
-    - Rinominare il repository sostituendo la parola _template_ con il vostro _cognome_ seguito dalla _matricola_ (`template_esonero_tcp` -> `cognome_12345_esonero_tcp`)
-    - Se l'esonero è svolto in coppia, il nome del repository sarà `cognome1_12345_cognome2_6789_esonero_tcp`
-4. Clonare il repository sul proprio computer:
+    - Nominare il repository anteponendo il vostro _cognome_ e la _matricola_ (`esonero_reti_tcp_itps_A-K_26-27` -> `cognome_12345_esonero_reti_tcp_itps_A-K_26-27`)
+    - Se l'esonero è svolto in coppia, il nome del repository sarà `cognome1_12345_cognome2_6789_esonero_reti_tcp_itps_A-K_26-27`
+3. Clonare il repository sul proprio computer:
    ```bash
    git clone <url-del-tuo-repository>
    ```
@@ -73,18 +73,9 @@ Per compilare su Windows, è necessario linkare la libreria Winsock:
 ## File Principali
 
 ### protocol.h
-Contiene:
-- **Costanti condivise**: numero di porta del server, dimensione del buffer, ecc.
-- **Prototipi delle funzioni**: inserire qui le firme di tutte le funzioni implementate
-
-Esempio:
-```c
-#define SERVER_PORT 27015
-#define BUFFER_SIZE 512
-
-// Prototipo funzione esempio
-int connect_to_server(const char* server_address);
-```
+È identico nei due progetti e contiene:
+- **Definizioni del protocollo** (già fornite, **non modificare**): strutture dei messaggi, codici di stato, costanti condivise
+- **Prototipi delle funzioni**: inserire qui le firme delle funzioni implementate
 
 ### main.c (Client e Server)
 Contiene:
