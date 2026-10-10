@@ -90,15 +90,18 @@ Server avviato con `server-project`. La colonna **Log server** riporta l'output 
 | `"XYZ USD 0"` | `Ricevuto risultato dal server ip 127.0.0.1. Valuta non supportata` | `Richiesta 'XYZ USD 0.00' dal client ip 127.0.0.1` |
 | `"EUR USD 0"` | `Ricevuto risultato dal server ip 127.0.0.1. Importo non valido` | `Richiesta 'EUR USD 0.00' dal client ip 127.0.0.1` |
 | `"EUR USD 100000.01"` | `Ricevuto risultato dal server ip 127.0.0.1. Importo non valido` | `Richiesta 'EUR USD 100000.01' dal client ip 127.0.0.1` |
-| `"EURO USD 10"` | messaggio d'uso, exit code ≠ 0 | *(nessuna connessione)* |
-| `"EUR USD 1.234"` | messaggio d'uso, exit code ≠ 0 | *(nessuna connessione)* |
-| `"EUR USD 10,50"` | messaggio d'uso, exit code ≠ 0 | *(nessuna connessione)* |
-| `"EUR USD -5"` | messaggio d'uso, exit code ≠ 0 | *(nessuna connessione)* |
-| `"EUR USD"` | messaggio d'uso, exit code ≠ 0 | *(nessuna connessione)* |
+
+Se l'argomento di `-r` non è nel formato `"FROM TO importo"` (codice valuta non composto da 3 lettere, importo negativo, non numerico o con più di due decimali, campi mancanti), il client **non contatta il server**, stampa
+
+```
+Uso: client-project [-s server] [-p port] -r "FROM TO importo"
+```
+
+ed esce con codice di uscita diverso da 0.
 
 > [!WARNING]
 > L'output deve corrispondere **carattere per carattere** a quello degli esempi: lingua italiana, spazi, punteggiatura, due cifre decimali, nessun messaggio aggiuntivo su `stdout`.
-> Se il server non è raggiungibile o la risposta non è valida, il client stampa un errore ed esce con exit code ≠ 0.
+> Se il server non è raggiungibile o la risposta non è valida, il client stampa un errore ed esce con codice di uscita diverso da 0.
 
 ## 6. Requisiti
 
