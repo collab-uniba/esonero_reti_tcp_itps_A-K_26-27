@@ -113,7 +113,7 @@ ed esce con codice di uscita diverso da 0.
 
 - **Scadenza**: _TBD_
 - **Form di prenotazione / consegna**: _TBD_
-- **Formato**: link al repository GitHub pubblico, nominato come indicato nel [README](README.md#1-creare-la-propria-copia-del-repository)
+- **Formato**: link al repository GitHub pubblico
 - **Risultati**: [link](https://collab-uniba.github.io/correzione_esonero_reti_tcp_itps_A-K_26-27/aggregate-report.html)
 - **Note**:
    - Una sola consegna per coppia
