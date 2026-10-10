@@ -64,3 +64,6 @@ Release/
 
 # Smoke test build output
 build/
+
+# Python bytecode
+__pycache__/
