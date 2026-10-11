@@ -98,7 +98,7 @@ Server avviato con `server-project`. La colonna **Log server** riporta l'output 
 | `"EUR USD 0"` | `Ricevuto risultato dal server ip 127.0.0.1. Importo non valido` | `Richiesta 'EUR USD 0.00' dal client ip 127.0.0.1` |
 | `"EUR USD 100000.01"` | `Ricevuto risultato dal server ip 127.0.0.1. Importo non valido` | `Richiesta 'EUR USD 100000.01' dal client ip 127.0.0.1` |
 
-Se l'argomento di `-r` non è nel formato `"FROM TO importo"` (codice valuta non composto da 3 lettere, importo negativo, non numerico o con più di due decimali, campi mancanti), il client **non contatta il server**, stampa
+Se l'argomento di `-r` non è nel formato `"FROM TO importo"` (codice valuta non composto da 3 lettere, importo negativo, non numerico, con più di due decimali o troppo grande per `uint32_t`, campi mancanti o in più), il client **non contatta il server**, stampa
 
 ```
 Uso: client-project [-s server] [-p port] -r "FROM TO importo"
@@ -107,8 +107,8 @@ Uso: client-project [-s server] [-p port] -r "FROM TO importo"
 ed esce con codice di uscita diverso da 0.
 
 > [!WARNING]
-> L'output deve corrispondere **carattere per carattere** a quello degli esempi: lingua italiana, spazi, punteggiatura, due cifre decimali, nessun messaggio aggiuntivo su `stdout`.
-> Se il server non è raggiungibile o la risposta non è valida, il client stampa un errore ed esce con codice di uscita diverso da 0.
+> L'output deve corrispondere **carattere per carattere** a quello degli esempi: lingua italiana, spazi, punteggiatura, due cifre decimali, nessun messaggio aggiuntivo.
+> Se il server non è raggiungibile o la risposta non è valida (codice di stato sconosciuto), il client stampa un errore ed esce con codice di uscita diverso da 0.
 
 ## 6. Requisiti
 
@@ -127,4 +127,4 @@ ed esce con codice di uscita diverso da 0.
    - Non è necessario ricompilare il form di consegna dopo aggiornamenti al repository
    - La pagina dei risultati si aggiorna ogni ora
 
-_Ver. 0.2.0_
+_Ver. 0.2.1_

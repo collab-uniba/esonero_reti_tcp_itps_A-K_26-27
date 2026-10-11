@@ -46,7 +46,8 @@ CASES = [
     ("EUR USD 100000.01", "Importo non valido", "Richiesta 'EUR USD 100000.01' dal client ip 127.0.0.1"),
 ]
 
-USAGE_CASES = ["EURO USD 10", "EUR USD 1.234", "EUR USD 10,50", "EUR USD -5", "EUR USD"]
+USAGE_CASES = ["EURO USD 10", "EUR USD 1.234", "EUR USD 10,50", "EUR USD -5", "EUR USD 42949673", "EUR USD",
+               "EUR USD 10 20"]
 
 BYTE_ORDER_HINT = "sembra un errore di byte order: hai usato htonl()/ntohl()?"
 
@@ -75,7 +76,12 @@ def reference_response(frm, to, amount):
 def recv_exactly(sock, n):
     data = b""
     while len(data) < n:
-        chunk = sock.recv(n - len(data))
+        try:
+            chunk = sock.recv(n - len(data))
+        except socket.timeout:
+            if data:  # partial message: report its length instead of a generic timeout
+                break
+            raise
         if not chunk:
             break
         data += chunk
@@ -139,8 +145,8 @@ def test_server(server, client):
                 sock.sendall(payload)
                 data = recv_exactly(sock, 8)
         except OSError as e:
-            check(section, name, False, "errore di comunicazione sulla porta %d: %s (verifiche "
-                  "successive sul server saltate)" % (DEFAULT_PORT, e))
+            check(section, name, False, "errore di comunicazione sulla porta %d: %s (richieste "
+                  "successive saltate)" % (DEFAULT_PORT, e))
             break
         expected_log.append(log_line)
         if len(data) != 8:
@@ -175,6 +181,8 @@ def test_server(server, client):
     log.seek(0)
     lines = normalize(log.read()).split("\n")
     missing = [line for line in expected_log if line not in lines]
+    if not expected_log:  # no request reached the server: nothing to verify
+        return
     check(section, "log delle richieste", not missing,
           "righe mancanti o diverse, ad es. %r (righe stampate: %r). Se non stampa nulla, "
           "chiama fflush(stdout) dopo ogni printf" % (missing[0] if missing else "", lines[:3]))
@@ -302,6 +310,8 @@ def main():
     if len(sys.argv) != 3:
         print(__doc__)
         return 2
+    # On Windows a piped stdout is cp1252: avoid crashing on the student's output
+    sys.stdout.reconfigure(errors="replace")
     client, server = executable(sys.argv[1]), executable(sys.argv[2])
     test_client(client)
     test_server(server, client)
