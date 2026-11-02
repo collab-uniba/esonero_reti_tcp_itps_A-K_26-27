@@ -127,6 +127,6 @@ ed esce con codice di uscita diverso da 0.
 - **Note**:
    - Una sola consegna per coppia
    - Non è necessario ricompilare il form di consegna dopo aggiornamenti al repository
-   - La pagina dei risultati si aggiorna ogni 3 ore, dalle 9 alle 24
+   - La pagina dei risultati si aggiorna tre volte al giorno, alle 9, alle 15 e alle 21
 
-_Ver. 0.3.0_
+_Ver. 0.3.1_
