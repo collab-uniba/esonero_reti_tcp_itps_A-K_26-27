@@ -122,11 +122,11 @@ ed esce con codice di uscita diverso da 0.
 
 - **Scadenza**: _TBD_
 - **Form di prenotazione / consegna**: [link](https://forms.gle/d7zivatYBT6uHMzU8) (Ctrl/Cmd-clic per aprire in una nuova scheda)
-- **Formato**: link al repository GitHub, pubblico oppure privato con l'utente `correttore-lab-reti` aggiunto come collaboratore in lettura (vedi README)
+- **Formato**: link al repository GitHub **privato**, con l'utente `correttore-lab-reti` aggiunto come collaboratore in lettura (vedi README)
 - **Risultati**: [link](https://collab-uniba.github.io/correzione_esonero_reti_tcp_itps_A-K_26-27/aggregate-report.html) (Ctrl/Cmd-clic per aprire in una nuova scheda)
 - **Note**:
    - Una sola consegna per coppia
    - Non è necessario ricompilare il form di consegna dopo aggiornamenti al repository
    - La pagina dei risultati si aggiorna tre volte al giorno, alle 9, alle 15 e alle 21
 
-_Ver. 0.3.2_
+_Ver. 0.3.3_
