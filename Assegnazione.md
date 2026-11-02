@@ -12,7 +12,7 @@ La specifica è data da tre elementi, da leggere insieme:
 
 ## 1. Protocollo
 
-Le strutture `conversion_request_t` e `conversion_response_t`, i codici di stato e le costanti sono definiti in [`protocol.h`](client-project/src/protocol.h). Client e server si scambiano queste strutture rispettando tre regole:
+Le strutture `conversion_request_t` e `conversion_response_t`, i codici di stato e le costanti sono definiti in [`protocol.h`](client-project/src/protocol.h). Client e server si scambiano queste strutture rispettando queste regole:
 
 - gli importi sono espressi **in centesimi** (es. `100.5` → `10050`);
 - i campi `uint32_t` vanno convertiti in **network byte order** prima dell'invio (`htonl()`) e riconvertiti dopo la ricezione (`ntohl()`);
