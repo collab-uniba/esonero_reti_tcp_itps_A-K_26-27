@@ -12,11 +12,13 @@ La specifica è data da tre elementi, da leggere insieme:
 
 ## 1. Protocollo
 
-Le strutture `conversion_request_t` e `conversion_response_t`, i codici di stato e le costanti sono definiti in [`protocol.h`](client-project/src/protocol.h). Client e server si scambiano queste strutture rispettando tre regole:
+Le strutture `conversion_request_t` e `conversion_response_t`, i codici di stato e le costanti sono definiti in [`protocol.h`](client-project/src/protocol.h). Client e server si scambiano queste strutture rispettando queste regole:
 
 - gli importi sono espressi **in centesimi** (es. `100.5` → `10050`);
 - i campi `uint32_t` vanno convertiti in **network byte order** prima dell'invio (`htonl()`) e riconvertiti dopo la ricezione (`ntohl()`);
-- in caso di errore (`status != STATUS_OK`) il server invia `amount = 0`.
+- in caso di errore (`status != STATUS_OK`) il server invia `amount = 0`;
+- i codici valuta sono accettati senza distinzione tra maiuscole e minuscole: il client li invia come ricevuti e li stampa in maiuscolo, il server li riporta nel log come ricevuti;
+- il client controlla solo il formato della richiesta; i limiti sull'importo (`0` e `MAX_AMOUNT`) sono verificati dal server, che risponde `STATUS_INVALID_AMOUNT`.
 
 ## 2. Diagramma di sequenza
 
@@ -98,7 +100,7 @@ Server avviato con `server-project`. La colonna **Log server** riporta l'output 
 | `"EUR USD 0"` | `Ricevuto risultato dal server ip 127.0.0.1. Importo non valido` | `Richiesta 'EUR USD 0.00' dal client ip 127.0.0.1` |
 | `"EUR USD 100000.01"` | `Ricevuto risultato dal server ip 127.0.0.1. Importo non valido` | `Richiesta 'EUR USD 100000.01' dal client ip 127.0.0.1` |
 
-Se l'argomento di `-r` non è nel formato `"FROM TO importo"` (codice valuta non composto da 3 lettere, importo negativo, non numerico, con più di due decimali o troppo grande per `uint32_t`, campi mancanti o in più), il client **non contatta il server**, stampa
+Se `-r` manca o il suo argomento non è nel formato `"FROM TO importo"` (codice valuta non composto da 3 lettere, importo negativo, non numerico, con più di due decimali o troppo grande per `uint32_t`, campi mancanti o in più), il client **non contatta il server**, stampa
 
 ```
 Uso: client-project [-s server] [-p port] -r "FROM TO importo"
@@ -125,6 +127,6 @@ ed esce con codice di uscita diverso da 0.
 - **Note**:
    - Una sola consegna per coppia
    - Non è necessario ricompilare il form di consegna dopo aggiornamenti al repository
-   - La pagina dei risultati si aggiorna ogni ora
+   - La pagina dei risultati si aggiorna ogni 3 ore, dalle 9 alle 24
 
-_Ver. 0.2.1_
+_Ver. 0.3.0_
