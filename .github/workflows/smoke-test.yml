@@ -28,11 +28,22 @@ jobs:
       - name: Build client and server
         run: |
           LIBS=""
-          if [ "$RUNNER_OS" = "Windows" ]; then LIBS="-lwsock32"; fi
+          if [ "$RUNNER_OS" = "Windows" ]; then LIBS="-lws2_32"; fi
           gcc --version | head -n 1
           mkdir -p build
           gcc -Wall -o build/client-project client-project/src/*.c $LIBS
           gcc -Wall -o build/server-project server-project/src/*.c $LIBS
+
+      - name: Keep the ephemeral ports away from the test ports
+        # 56700-56702 fall inside the OS ephemeral port range: an outgoing
+        # connection (the client tests, the runner itself) may get 56700 as
+        # local port and the server's bind then fails
+        run: |
+          case "$RUNNER_OS" in
+            Linux)   sudo sysctl -w net.ipv4.ip_local_port_range="32768 56000" ;;
+            macOS)   sudo sysctl -w net.inet.ip.portrange.last=56000 ;;
+            Windows) netsh int ipv4 set dynamicport tcp start=49152 num=6000 ;;
+          esac
 
       - name: Run smoke test
         run: python .github/scripts/smoke_test.py build/client-project build/server-project
