@@ -124,14 +124,18 @@ def connect_with_retry(port):
 def test_server(server, client):
     section = "server"
     log = tempfile.TemporaryFile()
+    errors = tempfile.TemporaryFile()
     try:
-        proc = subprocess.Popen([server], stdout=log, stderr=subprocess.DEVNULL, stdin=subprocess.DEVNULL)
+        proc = subprocess.Popen([server], stdout=log, stderr=errors, stdin=subprocess.DEVNULL)
     except OSError as e:
         check(section, "avvio", False, "impossibile eseguire il server: %s" % e)
         return
     time.sleep(1)
     if proc.poll() is not None:
-        check(section, "avvio", False, "il server termina subito (exit code %s)" % proc.returncode)
+        errors.seek(0)
+        stderr = normalize(errors.read()).strip()
+        check(section, "avvio", False, "il server termina subito (exit code %s)%s"
+              % (proc.returncode, (": " + stderr.replace("\n", " | ")) if stderr else ""))
         return
     check(section, "avvio", True)
 
