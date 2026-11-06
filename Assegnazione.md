@@ -14,11 +14,10 @@ La specifica è data da tre elementi, da leggere insieme:
 
 Le strutture `conversion_request_t` e `conversion_response_t`, i codici di stato e le costanti sono definiti in [`protocol.h`](client-project/src/protocol.h). Client e server si scambiano queste strutture rispettando queste regole:
 
-- gli importi sono espressi **in centesimi** (es. `100.5` → `10050`);
-- i campi `uint32_t` vanno convertiti in **network byte order** prima dell'invio (`htonl()`) e riconvertiti dopo la ricezione (`ntohl()`);
+- l'importo è un `float`: nel campo `amount` viaggiano i suoi 32 bit (vedi lezione *Costruzione di messaggi*);
+- i campi `uint32_t` vanno convertiti in **network byte order** prima dell'invio e riconvertiti dopo la ricezione;
 - in caso di errore (`status != STATUS_OK`) il server invia `amount = 0`;
-- i codici valuta sono accettati senza distinzione tra maiuscole e minuscole: il client li invia come ricevuti e li stampa in maiuscolo, il server li riporta nel log come ricevuti;
-- il client controlla solo il formato della richiesta; i limiti sull'importo (`0` e `MAX_AMOUNT`) sono verificati dal server, che risponde `STATUS_INVALID_AMOUNT`.
+- i codici valuta sono accettati senza distinzione tra maiuscole e minuscole: il client li invia come ricevuti e li stampa in maiuscolo, il server li riporta nel log come ricevuti.
 
 ## 2. Diagramma di sequenza
 
@@ -30,12 +29,12 @@ sequenceDiagram
     participant S as Server
 
     U->>C: client-project -r "eur usd 100.5"
-    Note over C: parsing argomenti<br/>importo = 10050 centesimi
+    Note over C: parsing argomenti<br/>importo = 100.5
     C->>S: connect()
-    C->>S: conversion_request_t { "eur", "usd", 10050 }
+    C->>S: conversion_request_t { "eur", "usd", 100.5 }
     Note over S: stampa log richiesta
     Note over S: valida valute e importo<br/>converte con convert()
-    S->>C: conversion_response_t { STATUS_OK, 10904 }
+    S->>C: conversion_response_t { STATUS_OK, 109.04 }
     S--xC: close()
     Note over C: stampa risultato
     C--xS: close()
@@ -43,30 +42,50 @@ sequenceDiagram
 
 Il server serve un client alla volta e non termina mai.
 
-## 3. Tassi di cambio e conversione (server)
+## 3. Conversione (server)
 
-Tassi fittizi rispetto a EUR, moltiplicati per 10000. Il server deve usare **esattamente** questa tabella e questa funzione:
+Il server conosce le valute della tabella, con tassi fittizi rispetto all'euro. Per ogni valuta, la colonna **1 EUR =** dice quante unità di quella valuta vale 1 euro:
+
+| Code | 1 EUR = |
+|---|---|
+| `EUR` | 1 EUR |
+| `USD` | 1.085 USD |
+| `GBP` | 0.855 GBP |
+| `CHF` | 0.945 CHF |
+| `JPY` | 162 JPY |
+| `CAD` | 1.48 CAD |
+| `AUD` | 1.65 AUD |
+| `CNY` | 7.8 CNY |
+
+Ricevuta una richiesta `FROM TO importo`, il server esegue **in quest'ordine** i controlli:
+
+1. cerca `FROM` e `TO` nella tabella, senza distinguere maiuscole e minuscole (`eur` e `EUR` sono la stessa valuta). Se uno dei due manca → `STATUS_INVALID_CURRENCY`;
+2. se `importo` non è compreso tra 0 (escluso) e `MAX_AMOUNT` (incluso) → `STATUS_INVALID_AMOUNT`;
+3. altrimenti risponde `STATUS_OK` con l'importo convertito:
+
+   **risultato = importo × tasso(TO) / tasso(FROM)**
+
+   Esempio: 100.5 EUR → USD = 100.5 × 1.085 / 1 = 109.04 USD
+
+Per la tabella e il calcolo usate **esattamente** questo codice:
 
 ```c
 typedef struct {
     const char *code;
-    uint32_t rate;   // units per 1 EUR, x10000
+    double rate;    // 1 EUR = rate units of this currency
 } rate_t;
 
 static const rate_t RATES[] = {
-    {"EUR",   10000}, {"USD",   10850}, {"GBP",   8550}, {"CHF",  9450},
-    {"JPY", 1620000}, {"CAD",   14800}, {"AUD",  16500}, {"CNY", 78000},
+    {"EUR", 1.0},   {"USD", 1.085}, {"GBP", 0.855}, {"CHF", 0.945},
+    {"JPY", 162.0}, {"CAD", 1.48},  {"AUD", 1.65},  {"CNY", 7.8},
 };
 
 /*
- * Converts an amount in cents from one currency to another,
- * rounding to the nearest cent.
- * Example: 100.00 EUR -> USD is convert(10000, 10000, 10850) = 10850 (108.50 USD)
+ * Converts an amount from one currency to another.
+ * Example: 100.5 EUR -> USD is convert(100.5f, 1.0, 1.085) = 109.04 USD
  */
-uint32_t convert(uint32_t amount, uint32_t rate_from, uint32_t rate_to) {
-    uint64_t product = (uint64_t)amount * rate_to;  // 64 bits to avoid overflow
-    uint64_t result = (product + rate_from / 2) / rate_from;  // + half the divisor: round instead of truncate
-    return (uint32_t)result;
+float convert(float amount, double rate_from, double rate_to) {
+    return (float)(amount * rate_to / rate_from);  // double math: same result on every machine
 }
 ```
 
@@ -91,16 +110,17 @@ Server avviato con `server-project`. La colonna **Log server** riporta l'output 
 | `"EUR USD 100"` | `Ricevuto risultato dal server ip 127.0.0.1. 100.00 EUR = 108.50 USD` | `Richiesta 'EUR USD 100.00' dal client ip 127.0.0.1` |
 | `"eur usd 100.5"` | `Ricevuto risultato dal server ip 127.0.0.1. 100.50 EUR = 109.04 USD` | `Richiesta 'eur usd 100.50' dal client ip 127.0.0.1` |
 | `"USD EUR 100"` | `Ricevuto risultato dal server ip 127.0.0.1. 100.00 USD = 92.17 EUR` | `Richiesta 'USD EUR 100.00' dal client ip 127.0.0.1` |
-| `"GBP JPY 1000"` | `Ricevuto risultato dal server ip 127.0.0.1. 1000.00 GBP = 189473.68 JPY` | `Richiesta 'GBP JPY 1000.00' dal client ip 127.0.0.1` |
+| `"GBP JPY 1000"` | `Ricevuto risultato dal server ip 127.0.0.1. 1000.00 GBP = 189473.69 JPY` | `Richiesta 'GBP JPY 1000.00' dal client ip 127.0.0.1` |
 | `"JPY EUR 5000"` | `Ricevuto risultato dal server ip 127.0.0.1. 5000.00 JPY = 30.86 EUR` | `Richiesta 'JPY EUR 5000.00' dal client ip 127.0.0.1` |
 | `"CHF CHF 12.34"` | `Ricevuto risultato dal server ip 127.0.0.1. 12.34 CHF = 12.34 CHF` | `Richiesta 'CHF CHF 12.34' dal client ip 127.0.0.1` |
 | `"EUR USD 100000"` | `Ricevuto risultato dal server ip 127.0.0.1. 100000.00 EUR = 108500.00 USD` | `Richiesta 'EUR USD 100000.00' dal client ip 127.0.0.1` |
 | `"EUR XYZ 10"` | `Ricevuto risultato dal server ip 127.0.0.1. Valuta non supportata` | `Richiesta 'EUR XYZ 10.00' dal client ip 127.0.0.1` |
 | `"XYZ USD 0"` | `Ricevuto risultato dal server ip 127.0.0.1. Valuta non supportata` | `Richiesta 'XYZ USD 0.00' dal client ip 127.0.0.1` |
+| `"EUR USD -5"` | `Ricevuto risultato dal server ip 127.0.0.1. Importo non valido` | `Richiesta 'EUR USD -5.00' dal client ip 127.0.0.1` |
 | `"EUR USD 0"` | `Ricevuto risultato dal server ip 127.0.0.1. Importo non valido` | `Richiesta 'EUR USD 0.00' dal client ip 127.0.0.1` |
 | `"EUR USD 100000.01"` | `Ricevuto risultato dal server ip 127.0.0.1. Importo non valido` | `Richiesta 'EUR USD 100000.01' dal client ip 127.0.0.1` |
 
-Se `-r` manca o il suo argomento non è nel formato `"FROM TO importo"` (codice valuta non composto da 3 lettere, importo negativo, non numerico, con più di due decimali o troppo grande per `uint32_t`, campi mancanti o in più), il client **non contatta il server**, stampa
+Se `-r` manca o il suo argomento non è nel formato `"FROM TO importo"` (codice valuta non composto da 3 lettere, importo non numerico, campi mancanti o in più), il client **non contatta il server**, stampa
 
 ```
 Uso: client-project [-s server] [-p port] -r "FROM TO importo"
@@ -110,7 +130,7 @@ ed esce con codice di uscita diverso da 0.
 
 > [!WARNING]
 > L'output deve corrispondere **carattere per carattere** a quello degli esempi: lingua italiana, spazi, punteggiatura, due cifre decimali, nessun messaggio aggiuntivo.
-> Se il server non è raggiungibile o la risposta non è valida (codice di stato sconosciuto), il client stampa un errore ed esce con codice di uscita diverso da 0.
+> Se il server non è raggiungibile o la risposta non è valida (codice di stato sconosciuto), il client stampa un errore ed esce con codice di uscita diverso da 0; in tutti gli altri casi esce con codice 0.
 
 ## 6. Requisiti
 
@@ -129,4 +149,4 @@ ed esce con codice di uscita diverso da 0.
    - Non è necessario ricompilare il form di consegna dopo aggiornamenti al repository
    - La pagina dei risultati si aggiorna tre volte al giorno, alle 9, alle 15 e alle 21
 
-_Ver. 0.3.4_
+_Ver. 0.4.0_

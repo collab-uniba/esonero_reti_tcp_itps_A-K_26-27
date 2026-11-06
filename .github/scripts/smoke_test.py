@@ -14,21 +14,21 @@ import socket
 import struct
 import subprocess
 import sys
+import math
 import tempfile
 import time
-from decimal import Decimal
 
 HOST = "127.0.0.1"
 DEFAULT_PORT = 56700
 REF_PORT = 56701
 CLOSED_PORT = 56702
 TIMEOUT = 5
-MAX_AMOUNT = 10000000
+MAX_AMOUNT = 100000.0
 PREFIX = "Ricevuto risultato dal server ip 127.0.0.1. "
 
-RATES = {
-    "EUR": 10000, "USD": 10850, "GBP": 8550, "CHF": 9450,
-    "JPY": 1620000, "CAD": 14800, "AUD": 16500, "CNY": 78000,
+RATES = {  # 1 EUR = rate units of the currency
+    "EUR": 1.0, "USD": 1.085, "GBP": 0.855, "CHF": 0.945,
+    "JPY": 162.0, "CAD": 1.48, "AUD": 1.65, "CNY": 7.8,
 }
 
 # (-r argument, expected client output after PREFIX, expected server log)
@@ -36,20 +36,21 @@ CASES = [
     ("EUR USD 100", "100.00 EUR = 108.50 USD", "Richiesta 'EUR USD 100.00' dal client ip 127.0.0.1"),
     ("eur usd 100.5", "100.50 EUR = 109.04 USD", "Richiesta 'eur usd 100.50' dal client ip 127.0.0.1"),
     ("USD EUR 100", "100.00 USD = 92.17 EUR", "Richiesta 'USD EUR 100.00' dal client ip 127.0.0.1"),
-    ("GBP JPY 1000", "1000.00 GBP = 189473.68 JPY", "Richiesta 'GBP JPY 1000.00' dal client ip 127.0.0.1"),
+    ("GBP JPY 1000", "1000.00 GBP = 189473.69 JPY", "Richiesta 'GBP JPY 1000.00' dal client ip 127.0.0.1"),
     ("JPY EUR 5000", "5000.00 JPY = 30.86 EUR", "Richiesta 'JPY EUR 5000.00' dal client ip 127.0.0.1"),
     ("CHF CHF 12.34", "12.34 CHF = 12.34 CHF", "Richiesta 'CHF CHF 12.34' dal client ip 127.0.0.1"),
     ("EUR USD 100000", "100000.00 EUR = 108500.00 USD", "Richiesta 'EUR USD 100000.00' dal client ip 127.0.0.1"),
     ("EUR XYZ 10", "Valuta non supportata", "Richiesta 'EUR XYZ 10.00' dal client ip 127.0.0.1"),
     ("XYZ USD 0", "Valuta non supportata", "Richiesta 'XYZ USD 0.00' dal client ip 127.0.0.1"),
+    ("EUR USD -5", "Importo non valido", "Richiesta 'EUR USD -5.00' dal client ip 127.0.0.1"),
     ("EUR USD 0", "Importo non valido", "Richiesta 'EUR USD 0.00' dal client ip 127.0.0.1"),
     ("EUR USD 100000.01", "Importo non valido", "Richiesta 'EUR USD 100000.01' dal client ip 127.0.0.1"),
 ]
 
-USAGE_CASES = ["EURO USD 10", "EUR USD 1.234", "EUR USD 10,50", "EUR USD -5", "EUR USD 42949673", "EUR USD",
-               "EUR USD 10 20"]
+USAGE_CASES = ["EURO USD 10", "EUR USD abc", "EUR USD 10,50", "EUR USD", "EU1 USD 10", "EUR USD 10 20"]
 
 BYTE_ORDER_HINT = "sembra un errore di byte order: hai usato htonl()/ntohl()?"
+FLOAT_HINT = "sembra che il float sia stato convertito in intero: vanno copiati i suoi bit con memcpy()"
 
 results = []  # (section, name, ok, detail)
 
@@ -59,18 +60,28 @@ def check(section, name, ok, detail=""):
     print("[%s] %s: %s%s" % ("OK" if ok else "FAIL", section, name, "" if ok else " -> " + detail))
 
 
+def to_float32(x):
+    """Round a Python float to IEEE 754 single precision, like a C float."""
+    return struct.unpack("!f", struct.pack("!f", x))[0]
+
+
+def same_float(a, b):
+    """Equal up to one float32 rounding (compilers may differ in the last bit)."""
+    return math.isclose(a, b, rel_tol=1e-6, abs_tol=1e-6)
+
+
 def parse_request(req):
     frm, to, amount = req.split(" ")
-    return frm, to, int(Decimal(amount) * 100)
+    return frm, to, to_float32(float(amount))
 
 
 def reference_response(frm, to, amount):
     rate_from, rate_to = RATES.get(frm.upper()), RATES.get(to.upper())
     if rate_from is None or rate_to is None:
-        return 1, 0
-    if amount == 0 or amount > MAX_AMOUNT:
-        return 2, 0
-    return 0, (amount * rate_to + rate_from // 2) // rate_from
+        return 1, 0.0
+    if not (amount > 0 and amount <= MAX_AMOUNT):
+        return 2, 0.0
+    return 0, to_float32(amount * rate_to / rate_from)  # convert(): double math, float result
 
 
 def recv_exactly(sock, n):
@@ -142,7 +153,7 @@ def test_server(server, client):
     expected_log = []
     for req, _, log_line in CASES:
         frm, to, amount = parse_request(req)
-        payload = struct.pack("!4s4sI", frm.encode(), to.encode(), amount)
+        payload = struct.pack("!4s4sf", frm.encode(), to.encode(), amount)
         name = "risposta a '%s'" % req
         try:
             with connect_with_retry(DEFAULT_PORT) as sock:
@@ -156,20 +167,23 @@ def test_server(server, client):
         if len(data) != 8:
             check(section, name, False, "ricevuti %d byte invece di 8" % len(data))
             continue
-        got = struct.unpack("!II", data)
+        got = struct.unpack("!If", data)
         expected = reference_response(frm, to, amount)
-        if got == expected:
+        if got[0] == expected[0] and same_float(got[1], expected[1]):
             check(section, name, True)
         else:
-            detail = "status/amount = %s, attesi %s" % (got, expected)
-            status_le = struct.unpack("<I", data[0:4])[0]
-            if struct.unpack("<II", data) == expected or (got[0] > 2 and status_le <= 2):
+            detail = "status/amount = (%d, %g), attesi (%d, %g)" % (got[0], got[1], expected[0], expected[1])
+            got_le = struct.unpack("<If", data)
+            if (got_le[0] == expected[0] and same_float(got_le[1], expected[1])) \
+                    or (got[0] > 2 and got_le[0] <= 2):
                 detail += "; " + BYTE_ORDER_HINT
+            elif got[0] == expected[0] and struct.unpack("!I", data[4:8])[0] == int(expected[1]):
+                detail += "; " + FLOAT_HINT
             check(section, name, False, detail)
 
     # End-to-end: student client against student server, default address and port
-    code, out, err = run_client(client, ["-r", "EUR USD 100"])
-    expected_out = PREFIX + "100.00 EUR = 108.50 USD"
+    code, out, err = run_client(client, ["-r", CASES[0][0]])
+    expected_out = PREFIX + CASES[0][1]
     if err:
         check("end-to-end", "client e server con parametri di default", False, err)
     else:
@@ -200,8 +214,8 @@ def serve_reference(conn):
         if len(data) == 12:
             frm = data[0:4].split(b"\0")[0].decode("ascii", errors="replace")
             to = data[4:8].split(b"\0")[0].decode("ascii", errors="replace")
-            amount = struct.unpack("!I", data[8:12])[0]
-            conn.sendall(struct.pack("!II", *reference_response(frm, to, amount)))
+            amount = struct.unpack("!f", data[8:12])[0]
+            conn.sendall(struct.pack("!If", *reference_response(frm, to, amount)))
         return data
 
 
@@ -246,11 +260,13 @@ def check_request(data, frm, to, amount):
     if data[0:3].decode("ascii", "replace").upper() != frm.upper() or \
             data[4:7].decode("ascii", "replace").upper() != to.upper():
         return "valute ricevute %r, attese %r" % ((data[0:3], data[4:7]), (frm, to))
-    got = struct.unpack("!I", data[8:12])[0]
-    if got != amount:
-        detail = "amount ricevuto %d, atteso %d" % (got, amount)
-        if struct.unpack("<I", data[8:12])[0] == amount:
+    got = struct.unpack("!f", data[8:12])[0]
+    if not same_float(got, amount):
+        detail = "amount ricevuto %g, atteso %g" % (got, amount)
+        if same_float(struct.unpack("<f", data[8:12])[0], amount):
             detail += "; " + BYTE_ORDER_HINT
+        elif struct.unpack("!I", data[8:12])[0] == int(amount):
+            detail += "; " + FLOAT_HINT
         return detail
     return None
 
@@ -293,7 +309,7 @@ def test_client(client):
                   % (code, "no" if request is None else "si"))
     listener.close()
 
-    code, out, err = run_client(client, ["-s", HOST, "-p", str(CLOSED_PORT), "-r", "EUR USD 100"])
+    code, out, err = run_client(client, ["-s", HOST, "-p", str(CLOSED_PORT), "-r", CASES[0][0]])
     check(section, "server non raggiungibile", not err and code != 0 and not out.startswith(PREFIX),
           err or "atteso exit code != 0 (exit code %s, output %r)" % (code, out))
 
