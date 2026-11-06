@@ -17,7 +17,7 @@
 #define QUEUE_SIZE 5               // Size of pending connections queue (server)
 
 #define CODE_LEN 4                 // ISO 4217 currency code: 3 letters + '\0'
-#define MAX_AMOUNT 10000000u       // 100000.00 in cents
+#define MAX_AMOUNT 100000.0f       // Largest amount accepted by the server
 
 // Response status codes
 #define STATUS_OK 0
@@ -28,13 +28,13 @@
 typedef struct {
     char from[CODE_LEN];   // Source currency code, null-terminated (e.g. "EUR")
     char to[CODE_LEN];     // Target currency code, null-terminated (e.g. "USD")
-    uint32_t amount;       // Amount in cents, network byte order
+    uint32_t amount;       // Amount: bits of a float, network byte order
 } conversion_request_t;
 
 // Response message (server -> client), 8 bytes
 typedef struct {
     uint32_t status;       // STATUS_* code, network byte order
-    uint32_t amount;       // Converted amount in cents, network byte order
+    uint32_t amount;       // Converted amount: bits of a float, network byte order
 } conversion_response_t;
 
 // Function prototypes
