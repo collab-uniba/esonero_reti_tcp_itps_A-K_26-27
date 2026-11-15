@@ -69,6 +69,7 @@ Ricevuta una richiesta `FROM TO importo`, il server esegue **in quest'ordine** i
 
 Per la tabella e il calcolo usate **esattamente** questo codice:
 
+<!-- codice-imposto -->
 ```c
 typedef struct {
     const char *code;
