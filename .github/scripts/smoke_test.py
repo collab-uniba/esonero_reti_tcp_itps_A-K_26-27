@@ -22,6 +22,7 @@ HOST = "127.0.0.1"
 DEFAULT_PORT = 56700
 REF_PORT = 56701
 CLOSED_PORT = 56702
+OPTION_PORT = 56703  # server started with -p
 TIMEOUT = 5
 MAX_AMOUNT = 100000.0
 PREFIX = "Ricevuto risultato dal server ip 127.0.0.1. "
@@ -206,6 +207,41 @@ def test_server(server, client):
           "chiama fflush(stdout) dopo ogni printf" % (missing[0] if missing else "", lines[:3]))
 
 
+def test_server_port_option(server):
+    """The server started with -p PORT listens on that port and answers."""
+    section, name = "server", "avvio con -p %d" % OPTION_PORT
+    try:
+        proc = subprocess.Popen([server, "-p", str(OPTION_PORT)], stdout=subprocess.DEVNULL,
+                                stderr=subprocess.DEVNULL, stdin=subprocess.DEVNULL)
+    except OSError as e:
+        check(section, name, False, "impossibile eseguire il server: %s" % e)
+        return
+    try:
+        time.sleep(1)
+        if proc.poll() is not None:
+            check(section, name, False, "il server termina subito (exit code %s): controlla la "
+                  "lettura degli argomenti, il valore dopo -p non e' un argomento a se'" % proc.returncode)
+            return
+        req = CASES[0][0]
+        frm, to, amount = parse_request(req)
+        try:
+            with connect_with_retry(OPTION_PORT) as sock:
+                sock.sendall(struct.pack("!4s4sf", frm.encode(), to.encode(), amount))
+                data = recv_exactly(sock, 8)
+        except OSError as e:
+            check(section, name, False, "errore di comunicazione sulla porta %d: %s" % (OPTION_PORT, e))
+            return
+        ok = len(data) == 8 and struct.unpack("!I", data[:4])[0] == reference_response(frm, to, amount)[0]
+        check(section, name, ok, "nessuna risposta corretta a '%s' sulla porta %d" % (req, OPTION_PORT))
+    finally:
+        if proc.poll() is None:
+            proc.terminate()
+            try:
+                proc.wait(timeout=TIMEOUT)
+            except subprocess.TimeoutExpired:
+                proc.kill()
+
+
 def serve_reference(conn):
     """Read one request and reply as the reference server. Returns the raw request."""
     with conn:
@@ -335,6 +371,7 @@ def main():
     client, server = executable(sys.argv[1]), executable(sys.argv[2])
     test_client(client)
     test_server(server, client)
+    test_server_port_option(server)
     write_summary()
     failed = sum(1 for r in results if not r[2])
     print("\n%d verifiche, %d fallite" % (len(results), failed))
