@@ -102,6 +102,7 @@ Il server resta in esecuzione finché non viene interrotto con `Ctrl+C`.
 A ogni `git push`, GitHub compila client e server su **Windows, Linux e macOS** e li verifica con alcuni esempi presi dall'assegnazione.
 
 - L'esito compare nella scheda **Actions** del vostro repository e accanto a ogni commit (✅ superato, ❌ fallito).
+- Per rilanciare la verifica senza fare un nuovo push: scheda **Actions** → **Smoke test** (a sinistra) → **Run workflow** → **Run workflow**.
 - In caso di fallimento, aprite l'esecuzione e consultate la pagina **Summary**: per ogni verifica fallita è indicato cosa era atteso e cosa è stato ricevuto.
 - La verifica automatica serve a intercettare subito gli errori evidenti (codice che non compila su un sistema operativo, formato di output errato, byte order). **Superarla non garantisce** il superamento della correzione finale, che usa ulteriori casi di test.
 - Non modificate la cartella `.github/`.
