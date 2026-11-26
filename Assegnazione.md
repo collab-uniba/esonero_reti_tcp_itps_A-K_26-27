@@ -146,7 +146,7 @@ ed esce con codice di uscita diverso da 0.
 - **Formato**: link al repository GitHub **privato**, con l'utente `correttore-lab-reti` aggiunto come collaboratore in lettura (vedi README)
 - **Risultati**: [link](https://collab-uniba.github.io/correzione_esonero_reti_tcp_itps_A-K_26-27/aggregate-report.html) (Ctrl/Cmd-clic per aprire in una nuova scheda)
 - **Note**:
-   - Una sola consegna per coppia
+   - Si può lavorare da soli o in coppia; chi lavora in coppia fa una sola consegna
    - Non è necessario ricompilare il form di consegna dopo aggiornamenti al repository
    - La pagina dei risultati si aggiorna ogni ora
 
