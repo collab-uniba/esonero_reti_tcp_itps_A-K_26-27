@@ -102,6 +102,9 @@ server-project [-p port]
 | `-s` | `DEFAULT_SERVER_IP` |
 | `-p` | `SERVER_PORT` |
 
+> [!WARNING]
+> L'opzione `-p` **non è opzionale da implementare**, né nel client né nel server: le parentesi quadre indicano solo che, se non la si passa, si usa `SERVER_PORT`. La correzione avvia il server con `-p` e una porta diversa da `SERVER_PORT`: se `-p` non è implementata, client e server non comunicano e l'esito è **negativo**.
+
 ## 5. Esempi
 
 Server avviato con `server-project`. La colonna **Log server** riporta l'output del server per la stessa richiesta.
